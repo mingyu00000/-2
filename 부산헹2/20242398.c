@@ -336,6 +336,27 @@ int main(void) {
         if (M_A == ACTION_REST) {
             M_R();
         }
+        else if (M_A = ACTION_PROVOKE) {
+            M2_aggro = AGGRO_MAX;
+            printf("madongseokprovoked zombie...\n");
+            printf("madongseok: %d (aggro: %d -> %d, stamina: %d)\n", m1, M1_aggro, M2_aggro, M2_stamina);
+        }
+        else {
+            M2_aggro += 2;
+            if (M2_aggro > AGGRO_MAX) {
+                M2_aggro = AGGRO_MAX;
+            }
+            M2_stamina -= 1;
+            int ran = rand() % 100;
+            if (ran < (100 - probability)) {
+                printf("madongseokpulled zombie... Next turn, it can't move");
+            }
+            else {
+            printf("madongseokfailed to pull zombie");
+            printf("madongseok: 7 (aggro: 2 -> 4, stamina: 2 -> 1)");
+
+            }
+        }
         printf("\n");
 
         if (C == 1 || Z == C + 1 || M2_stamina < STM_MIN) {
