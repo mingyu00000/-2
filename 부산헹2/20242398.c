@@ -12,7 +12,7 @@
 #define AGGRO_MAX 5
 
 // 마동석 이동 방향
-#define MOVE_LEFT 1
+#define MOVE_LEFT 1   
 #define MOVE_STAY 0
 
 // 마동석 공격 대상
