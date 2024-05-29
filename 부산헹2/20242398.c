@@ -1,3 +1,5 @@
+// PULL 
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -31,6 +33,7 @@ int C, Z, M;
 int c1, z1, m1, zt;
 int C1_aggro, C2_aggro, M1_aggro, M2_aggro;
 int M1_stamina, M2_stamina;
+int M_A;
 
 void Initializevariables() {
     C1_aggro = 0;
@@ -162,12 +165,13 @@ void printState() {
         z1 = Z;
     }
     zt++;
+printf("\n");
 }
 void printMstate() {
-    if (M == m1) {
-        printf("madongseok: stay %d (aggro: %d - > %d, stamina: %d)\n", M, M1_aggro, M2_aggro, M2_stamina); // 마동석 움직였을때 상태창 출력
+    if (M != m1) {
+        printf("madongseok: %d -> %d (aggro: %d - > %d, stamina: %d)\n", m1, M, M1_aggro, M2_aggro, M2_stamina); // 마동석 움직였을때 상태창 출력
     }
-    else if (M != m1)
+    else
         printf("madongseok: stay %d (aggro: %d -> %d, stamina: %d)\n", M, M1_aggro, M2_aggro, M2_stamina); // 마동석 못 움직일때 상태창 출력
 }
 void printZstate() {
@@ -175,15 +179,17 @@ void printZstate() {
         printf("zombie attacked nobody.\n");
     }
     else if (M == Z + 1) {
-        printf("zombie attcked madongseok\n");
         M2_stamina--;
+        printf("zombie attcked madongseok (stamina: %d -> %d)\n", M1_stamina, M2_stamina);
     }
     else if (C == Z - 1)
-        printf("zombie attcked citizen game over");
+        printf("zombie attcked citizen game over\n");
     else if ((Z - 1) == C && (Z + 1) == M) {
         if (C2_aggro < M2_aggro) {
-            printf("Zomibeattacked madongseok(aggro: %d vs. %d, madongseokstamina: %d -> %d)", C2_aggro, M2_aggro, M1_stamina, M2_stamina);
+            printf("Zomibeattacked madongseok(aggro: %d vs. %d, madongseok stamina: %d -> %d)\n", C2_aggro, M2_aggro, M1_stamina, M2_stamina);
         }
+        else
+            printf("Zomibeattacked citizen(aggro: %d vs. %d) game over\n", C2_aggro, M2_aggro);
     }
 }
 void updatePositions() {
@@ -194,10 +200,17 @@ void updatePositions() {
     if (zt % 2 != 0) {// 좀비턴 구분
         int zp = rand() % 101;
         if (zp < probability) {
-            Z--;
+            if (M1_aggro > C1_aggro) {
+                Z++; // 마동석 어그로가 높으면 오른쪽으로 이동
+            }
+            else if (M1_aggro < C1_aggro) {
+                Z--; // 시민 어그로가 높으면 왼쪽으로 이동
+            }
+            else
+                Z--;
+        }
         }
     }
-}
 void inputMposition() {
     int MOVE;
     while (1) {
@@ -229,6 +242,47 @@ void inputMposition() {
         }
     }
 }
+void madongseokAction() {
+    int MOVE;
+    while (1) {
+        if (Z != M - 1) {  // 좀비가 바로 옆에 없을 때
+            printf("madongseokaction(%d.rest, %d.provoke)>> ", ACTION_REST, ACTION_PROVOKE);
+            scanf_s("%d", &MOVE);
+            if (MOVE == ACTION_REST) {
+                M_A = ACTION_REST;
+                // 유효한 입력 일 경우 반복문 종료
+                break;
+            }
+            else if (MOVE == ACTION_PROVOKE) {
+                M_A = ACTION_PROVOKE;
+                break;  
+            }
+        }
+        else {  // 좀비가 바로 옆에 있을 때
+            printf("madongseokaction(%d.rest, %d.provoke, %d. pull)>> ", ACTION_REST, ACTION_PROVOKE, ACTION_RULL);
+            scanf_s("%d", &MOVE);
+            if (MOVE == ACTION_REST) {
+                M_A = ACTION_REST;
+                // 유효한 입력 일 경우 반복문 종료
+                break;
+            }
+            else if (MOVE == ACTION_PROVOKE) {
+                M_A = ACTION_PROVOKE;
+                break;
+            }
+            else if (MOVE == ACTION_RULL) {
+                M_A = ACTION_RULL;
+                break;
+            }
+        }
+    }
+    printf("\n");
+}
+void M_R() {
+    M2_stamina++;
+    printf("madongseok rests... \n");
+    printf("madongseok: %d (aggro: %d -> %d, stamina: %d -> %d)\n", m1, M1_aggro, M2_aggro, M1_stamina, M2_stamina);
+}
 
 
 int main(void) {
@@ -247,6 +301,7 @@ int main(void) {
     C = trainLength - 6;
     Z = trainLength - 3;
     M = trainLength - 2;
+    M1_stamina = M2_stamina;
     c1 = C;
     z1 = Z;
     m1 = M;
@@ -266,22 +321,32 @@ int main(void) {
         aggroManagement();
         aggroMManagement();
         printState();
+        inputMposition();
         printf("\n");
         printf("\n");
        
-        inputMposition();
         printTrain();
         printMstate();
         printf("\n");
         printf("citizen does nothing.\n");
         printZstate();
+        madongseokAction();
+        M1_aggro = M2_aggro;
+        M1_stamina = M2_stamina;
+        if (M_A == ACTION_REST) {
+            M_R();
+        }
         printf("\n");
 
         if (C == 1 || Z == C + 1 || M2_stamina < STM_MIN) {
             break; // 반복 나가기
         }
         C1_aggro = C2_aggro;
+        M1_aggro = M2_aggro;
         M1_stamina = M2_stamina;
+        z1 = Z;
+        c1 = C;
+        m1 = M;
     }
 
     // 아웃 출력
