@@ -1,5 +1,3 @@
-// PULL 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -169,10 +167,10 @@ printf("\n");
 }
 void printMstate() {
     if (M != m1) {
-        printf("madongseok: %d -> %d (aggro: %d - > %d, stamina: %d)\n", m1, M, M1_aggro, M2_aggro, M2_stamina); // 마동석 움직였을때 상태창 출력
+        printf("madongseok: %d -> %d (aggro: %d - > %d, stamina: %d)\n", m1, M, M2_aggro, M1_aggro, M2_stamina); // 마동석 움직였을때 상태창 출력
     }
     else
-        printf("madongseok: stay %d (aggro: %d -> %d, stamina: %d)\n", M, M1_aggro, M2_aggro, M2_stamina); // 마동석 못 움직일때 상태창 출력
+        printf("madongseok: stay %d (aggro: %d -> %d, stamina: %d)\n", M, M2_aggro, M1_aggro, M1_stamina); // 마동석 못 움직일때 상태창 출력
 }
 void printZstate() {
     if ((Z - 1) != C && (Z + 1) != M) { // 좀비 아무것도 못 했을때 상태 출력
@@ -200,7 +198,7 @@ void updatePositions() {
     if (zt % 2 != 0) {// 좀비턴 구분
         int zp = rand() % 101;
         if (zp < probability) {
-            if (M1_aggro > C1_aggro) {
+            if (M1_aggro > C1_aggro && Z != M-1) {
                 Z++; // 마동석 어그로가 높으면 오른쪽으로 이동
             }
             else if (M1_aggro < C1_aggro) {
@@ -209,8 +207,11 @@ void updatePositions() {
             else
                 Z--;
         }
+        else if (Z == M - 1) {
+            Z--; // 마동석 옆에 있을 때는 가만히 있음
         }
     }
+}
 void inputMposition() {
     int MOVE;
     while (1) {
@@ -280,8 +281,36 @@ void madongseokAction() {
 }
 void M_R() {
     M2_stamina++;
+    if (M2_stamina > STM_MAX) M2_stamina = STM_MAX;
     printf("madongseok rests... \n");
     printf("madongseok: %d (aggro: %d -> %d, stamina: %d -> %d)\n", m1, M1_aggro, M2_aggro, M1_stamina, M2_stamina);
+}
+void printMProvoke() {
+    if (M_A == ACTION_REST) {
+        M_R();
+    }
+    else if (M_A = ACTION_PROVOKE) {
+        M2_aggro = AGGRO_MAX;
+        printf("madongseokprovoked zombie...\n");
+        printf("madongseok: %d (aggro: %d -> %d, stamina: %d)\n", m1, M1_aggro, M2_aggro, M2_stamina);
+        }
+    else {
+        M2_aggro += 2;
+        if (M2_aggro > AGGRO_MAX) {
+            M2_aggro = AGGRO_MAX;
+        }
+        M2_stamina -= 1;
+        int ran = rand() % 100;
+        if (ran < (100 - probability)) {
+            printf("madongseokpulled zombie... Next turn, it can't move");
+        }
+        else {
+            printf("madongseok failed to pull zombie");
+            printf("madongseok: %d (aggro: %d -> %d, stamina: %d -> %d)", m1, M1_aggro, M2_aggro, M1_stamina, M2_stamina);
+
+        }
+        }
+        printf("\n");
 }
 
 
@@ -331,33 +360,7 @@ int main(void) {
         printf("citizen does nothing.\n");
         printZstate();
         madongseokAction();
-        M1_aggro = M2_aggro;
-        M1_stamina = M2_stamina;
-        if (M_A == ACTION_REST) {
-            M_R();
-        }
-        else if (M_A = ACTION_PROVOKE) {
-            M2_aggro = AGGRO_MAX;
-            printf("madongseokprovoked zombie...\n");
-            printf("madongseok: %d (aggro: %d -> %d, stamina: %d)\n", m1, M1_aggro, M2_aggro, M2_stamina);
-        }
-        else {
-            M2_aggro += 2;
-            if (M2_aggro > AGGRO_MAX) {
-                M2_aggro = AGGRO_MAX;
-            }
-            M2_stamina -= 1;
-            int ran = rand() % 100;
-            if (ran < (100 - probability)) {
-                printf("madongseokpulled zombie... Next turn, it can't move");
-            }
-            else {
-            printf("madongseokfailed to pull zombie");
-            printf("madongseok: 7 (aggro: 2 -> 4, stamina: 2 -> 1)");
-
-            }
-        }
-        printf("\n");
+        printMProvoke();
 
         if (C == 1 || Z == C + 1 || M2_stamina < STM_MIN) {
             break; // 반복 나가기
